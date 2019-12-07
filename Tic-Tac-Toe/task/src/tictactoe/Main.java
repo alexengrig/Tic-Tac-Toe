@@ -45,10 +45,6 @@ public class Main {
     }
 
     private static char whoseMove(char[] values) {
-        //FIXME: Mistake in test #19
-        if (Arrays.equals(values, new char[]{'X', '_', 'X', '_', 'O', '_', '_', '_', '_'})) {
-            return 'X';
-        }
         int x = 0;
         int o = 0;
         for (char value : values) {
