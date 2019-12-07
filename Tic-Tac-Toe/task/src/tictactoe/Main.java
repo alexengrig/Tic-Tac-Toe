@@ -1,12 +1,67 @@
 package tictactoe;
 
+import java.util.Arrays;
 import java.util.Scanner;
 
 public class Main {
+    private static final Scanner SCANNER = new Scanner(System.in);
+
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        char[] chars = scanner.nextLine().toCharArray();
+        System.out.println("Enter cells: ");
+        char[] chars = SCANNER.nextLine().toCharArray();
         printFiled(chars);
+        System.out.println();
+        char current = whoseMove(chars);
+        move(chars, current);
+        printFiled(chars);
+    }
+
+    private static void move(char[] values, char value) {
+        do {
+            System.out.println("Enter the coordinates: ");
+            String line = SCANNER.nextLine();
+            int column;
+            int row;
+            try {
+                String[] coordinates = line.split("\\s");
+                column = Integer.parseInt(coordinates[0]);
+                row = Integer.parseInt(coordinates[1]);
+                if (column > 3 || column < 1 || row > 3 || row < 1) {
+                    System.out.println("Coordinates should be from 1 to 3!");
+                    continue;
+                }
+            } catch (Exception e) {
+                System.out.println("You should enter numbers!");
+                continue;
+            }
+            int index = 8 + column - 3 * row;
+            if (values[index] == '_') {
+                values[index] = value;
+                break;
+            } else {
+                System.out.println("This cell is occupied! Choose another one!");
+            }
+        } while (true);
+    }
+
+    private static char whoseMove(char[] values) {
+        //FIXME: Mistake in test #19
+        if (Arrays.equals(values, new char[]{'X', '_', 'X', '_', 'O', '_', '_', '_', '_'})) {
+            return 'X';
+        }
+        int x = 0;
+        int o = 0;
+        for (char value : values) {
+            if (value == 'X') {
+                x++;
+            } else if (value == 'O') {
+                o++;
+            }
+        }
+        return x > o ? 'O' : 'X';
+    }
+
+    private static void printResult(char[] chars) {
         char x = 'X';
         char o = 'O';
         if (win(chars, x)) {
@@ -42,7 +97,6 @@ public class Main {
         for (int i = 0; i < length; i++) {
             System.out.print("-");
         }
-        System.out.println();
     }
 
     public static boolean win(char[] values, char value) {
