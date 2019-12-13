@@ -7,16 +7,45 @@ public class Main {
     private static final Scanner SCANNER = new Scanner(System.in);
 
     public static void main(String[] args) {
-        System.out.println("Enter cells: ");
-        char[] chars = SCANNER.nextLine().toCharArray();
-        printFiled(chars);
-        System.out.println();
-        char current = whoseMove(chars);
-        move(chars, current);
-        printFiled(chars);
+        Stone[] stones = new Stone[9];
+        Arrays.fill(stones, Stone.FREE);
+        Stone current = Stone.FREE;
+        GameStatus gameStatus;
+        do {
+            current = current.opposite();
+            print(stones);
+            move(stones, current);
+            gameStatus = check(stones, current);
+        } while (gameStatus == GameStatus.NONE);
+        print(stones);
+        if (gameStatus == GameStatus.WIN) {
+            System.out.println(current + " wins");
+        } else {
+            System.out.println("Draw");
+        }
     }
 
-    private static void move(char[] values, char value) {
+    private static void print(Stone[] stones) {
+        int length = stones.length;
+        int size = (int) Math.sqrt(length);
+        for (int i = 0; i < length; i++) {
+            System.out.print("-");
+        }
+        System.out.print("\n| ");
+        for (int i = 0; i < length; i++) {
+            if (i >= size && i % size == 0) {
+                System.out.print("|\n| ");
+            }
+            System.out.print(stones[i] + " ");
+        }
+        System.out.println("|");
+        for (int i = 0; i < length; i++) {
+            System.out.print("-");
+        }
+        System.out.println();
+    }
+
+    private static void move(Stone[] stones, Stone stone) {
         do {
             System.out.println("Enter the coordinates: ");
             String line = SCANNER.nextLine();
@@ -35,8 +64,8 @@ public class Main {
                 continue;
             }
             int index = 8 + column - 3 * row;
-            if (values[index] == '_') {
-                values[index] = value;
+            if (stones[index] == Stone.FREE) {
+                stones[index] = stone;
                 break;
             } else {
                 System.out.println("This cell is occupied! Choose another one!");
@@ -44,94 +73,82 @@ public class Main {
         } while (true);
     }
 
-    private static char whoseMove(char[] values) {
-        int x = 0;
-        int o = 0;
-        for (char value : values) {
-            if (value == 'X') {
-                x++;
-            } else if (value == 'O') {
-                o++;
-            }
+    private static GameStatus check(Stone[] stones, Stone stone) {
+        if (win(stones, stone)) {
+            return GameStatus.WIN;
+        } else if (!hasEmpty(stones)) {
+            return GameStatus.DRAW;
         }
-        return x > o ? 'O' : 'X';
+        return GameStatus.NONE;
     }
 
-    private static void printResult(char[] chars) {
-        char x = 'X';
-        char o = 'O';
-        if (win(chars, x)) {
-            System.out.println("X wins");
-        } else if (win(chars, o)) {
-            System.out.println("O wins");
-        }
-        if (!hasEmpty(chars) && !win(chars, x) && !win(chars, o)) {
-            System.out.println("Draw");
-        }
-        if (hasEmpty(chars) && !win(chars, x) && !win(chars, o)) {
-            System.out.println("Game not finished");
-        }
-        if (win(chars, x) && win(chars, o) || hasDifferenceCount(chars)) {
-            System.out.println("Impossible");
-        }
-    }
-
-    public static void printFiled(char[] values) {
-        int length = values.length;
-        int size = (int) Math.sqrt(length);
-        for (int i = 0; i < length; i++) {
-            System.out.print("-");
-        }
-        System.out.print("\n| ");
-        for (int i = 0; i < length; i++) {
-            if (i >= size && i % size == 0) {
-                System.out.print("|\n| ");
-            }
-            System.out.print(values[i] + " ");
-        }
-        System.out.println("|");
-        for (int i = 0; i < length; i++) {
-            System.out.print("-");
-        }
-    }
-
-    public static boolean win(char[] values, char value) {
-        boolean horizontal = (value == values[0] && value == values[1] && value == values[2])
+    public static boolean win(Stone[] stones, Stone stone) {
+        boolean horizontal = (stone == stones[0] && stone == stones[1] && stone == stones[2])
                 ||
-                (value == values[3] && value == values[4] && value == values[5])
+                (stone == stones[3] && stone == stones[4] && stone == stones[5])
                 ||
-                (value == values[6] && value == values[7] && value == values[8]);
-        boolean vertical = (value == values[0] && value == values[3] && value == values[6])
+                (stone == stones[6] && stone == stones[7] && stone == stones[8]);
+        boolean vertical = (stone == stones[0] && stone == stones[3] && stone == stones[6])
                 ||
-                (value == values[1] && value == values[4] && value == values[7])
+                (stone == stones[1] && stone == stones[4] && stone == stones[7])
                 ||
-                (value == values[2] && value == values[5] && value == values[8]);
-        boolean diagonal = (value == values[0] && value == values[4] && value == values[8])
+                (stone == stones[2] && stone == stones[5] && stone == stones[8]);
+        boolean diagonal = (stone == stones[0] && stone == stones[4] && stone == stones[8])
                 ||
-                (value == values[2] && value == values[4] && value == values[6]);
+                (stone == stones[2] && stone == stones[4] && stone == stones[6]);
         return horizontal || vertical || diagonal;
     }
 
-    public static boolean hasEmpty(char[] values) {
-        for (char value : values) {
-            if (value == '_') {
+    public static boolean hasEmpty(Stone[] stones) {
+        for (Stone stone : stones) {
+            if (stone == Stone.FREE) {
                 return true;
             }
         }
         return false;
     }
 
-    public static boolean hasDifferenceCount(char[] values) {
-        int x = 0;
-        int o = 0;
-        for (char value : values) {
-            if (value == 'X') {
-                x++;
-            } else if (value == 'O') {
-                o++;
+    enum Stone {
+        X {
+            @Override
+            public String toString() {
+                return "X";
             }
-        }
-        int difference = x - o;
-        return difference >= 2 || difference <= -2;
+
+            @Override
+            public Stone opposite() {
+                return O;
+            }
+        },
+        O {
+            @Override
+            public String toString() {
+                return "O";
+            }
+
+            @Override
+            public Stone opposite() {
+                return X;
+            }
+        },
+        FREE {
+            @Override
+            public String toString() {
+                return " ";
+            }
+
+            @Override
+            public Stone opposite() {
+                return X;
+            }
+        };
+
+        public abstract Stone opposite();
+    }
+
+    enum GameStatus {
+        WIN,
+        DRAW,
+        NONE
     }
 }
